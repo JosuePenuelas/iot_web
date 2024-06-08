@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cliente websocket</title>
+    </head>
+ 
+ <body>                   
+    <input type="checkbox" onclick="estadoLed()" />
+   
+    <!--Script que se ejecuta una vez cargada el DOM-->
+    <script>
+      //  Estado inicial del switch
+      let estado = 0;
+      //  Captura de los componentes
+      let led = document.getElementById("led");
+     //  WS
+      let ws = new WebSocket("ws://localhost:40150");
+
+      
+      function estadoLed() {
+        try {
+          if (estado == 0) {
+            estado = 1;
+          } else {
+            estado = 0;
+          }
+          
+          ws.send(JSON.stringify(estado));
+          } catch (err) {
+          console.log(err);
+        }
+      }
+    </script>
+  </body>
+</html>

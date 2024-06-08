@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfaz de Control</title>
+</head>
+
+<body>
+  <h1>Interfaz de Control</h1>
+
+  <!-- Slider bar para controlar el servomotor -->
+  <input type="range" min="0" max="180" value="0" id="servoSlider" oninput="updateSliderValue(this.value)">
+  <p id="servoSliderTag">Valor del Slider: 0</p>
+
+  <!-- Push Button para enviar datos del sensor #1 -->
+  <button id="sendDataBtn">Enviar Datos</button>
+
+  <!-- Etiqueta para mostrar el valor del sensor #2 -->
+  <p id="sensorValue">Valor del Sensor #2: </p>
+
+  <!-- LED para indicar la activación por el sensor #3 -->
+  <div id="led" style="width: 20px; height: 20px; background-color: gray;"></div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:3000');
+    var sensor1 = 0;
+
+    // Evento de conexión WebSocket
+    ws.onopen = () => {
+      console.log('Conexión establecida');
+    };
+
+    // Evento de mensaje recibido desde el servidor
+    ws.onmessage = (event) => {
+      console.log('Mensaje recibido desde el servidor:', event.data);
+      const messageString = String(event.data); // Convertir a cadena explícitamente
+      const [identifier, value] = messageString.split(':');
+      if (identifier == "sensor2") {
+        updateSensorValue(value);
+      } else if (identifier == "sensor3") {
+        if (value == 1)
+          activateLED();
+        else
+          deactivateLED();
+      }
+    };
+
+    // Función para enviar datos al servidor cuando se presiona el botón
+    document.getElementById('sendDataBtn').onclick = () => {
+      sensor1 = sensor1 === 0 ? 1 : 0;
+      ws.send(`sensor1:${sensor1}`);
+    };
+
+    // Función para actualizar la etiqueta con el valor del sensor #2
+    function updateSensorValue(value) {
+      document.getElementById('sensorValue').innerText = `Valor del Sensor #2: ${value}`;
+    }
+
+    // Función para activar el LED cuando el sensor #3 excede el offset
+    function activateLED() {
+      document.getElementById('led').style.backgroundColor = 'green';
+    }
+
+    // Función para desactivar el LED
+    function deactivateLED() {
+      document.getElementById('led').style.backgroundColor = 'gray';
+    };
+
+    // Evento para actualizar el Slider bar y enviar el valor al servidor en tiempo real
+    document.getElementById('servoSlider').oninput = () => {
+      const sliderValue = document.getElementById('servoSlider').value;
+      updateSliderValue(sliderValue);
+      console.log('Valor del Slider:', sliderValue);
+      // Envía el valor al servidor
+      ws.send(`Slider: ${sliderValue}`);
+    };
+
+    function updateSliderValue(value) {
+      document.getElementById('servoSliderTag').innerText = `Valor del Slider: ${value}`;
+    }
+  </script>
+</body>
+
+</html>
